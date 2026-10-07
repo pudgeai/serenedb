@@ -255,7 +255,6 @@ duckdb::unique_ptr<duckdb::FunctionData> Bind(
   const bool wrapper = group.kind == pg::TemplateKind::Wrapper;
 
   pg::Options options;
-  std::string key = absl::StrCat("fn:", name, list_input ? "[]" : "", "(");
   for (size_t i = 0; i < flat.size(); ++i) {
     auto& arg = *args[i + 1];
     if (arg.HasParameter() || !arg.IsFoldable()) {
@@ -286,7 +285,7 @@ duckdb::unique_ptr<duckdb::FunctionData> Bind(
 
   auto config = pg::BuildStage(context, group.name, std::move(options),
                                std::move(children), operation);
-  absl::StrAppend(&key, catalog::PackTokenizerConfig(config), ")");
+  auto key = catalog::PackTokenizerConfig(config);
 
   auto& db = duckdb::DatabaseInstance::GetDatabase(context);
   auto probe = irs::analysis::CreateTokenizer(irs::analysis::Clone(config),

@@ -286,6 +286,12 @@ s(100000002,2,''come_up'',v,1,0).') AS t;
 t
 {100000002}
 
+query
+SELECT expand_solr_synonyms('fox', '') AS solr, expand_wordnet_synonyms('fox', '') AS wordnet;
+----
+solr	wordnet
+{fox}	{fox}
+
 
 # --- fastText models: the model file is the option ---
 
