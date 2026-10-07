@@ -21,7 +21,6 @@
 #include "connector/functions/tokenizer_functions.h"
 
 #include <absl/algorithm/container.h>
-#include <absl/strings/escaping.h>
 #include <absl/strings/str_cat.h>
 
 #include <duckdb/common/vector/flat_vector.hpp>
@@ -287,8 +286,7 @@ duckdb::unique_ptr<duckdb::FunctionData> Bind(
 
   auto config = pg::BuildStage(context, group.name, std::move(options),
                                std::move(children), operation);
-  const auto packed = catalog::PackTokenizerConfig(config);
-  absl::StrAppend(&key, absl::Base64Escape(packed), ")");
+  absl::StrAppend(&key, catalog::PackTokenizerConfig(config), ")");
 
   auto& db = duckdb::DatabaseInstance::GetDatabase(context);
   auto probe = irs::analysis::CreateTokenizer(irs::analysis::Clone(config),
