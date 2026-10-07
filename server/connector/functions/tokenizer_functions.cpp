@@ -21,6 +21,7 @@
 #include "connector/functions/tokenizer_functions.h"
 
 #include <absl/algorithm/container.h>
+#include <absl/strings/escaping.h>
 #include <absl/strings/str_cat.h>
 
 #include <duckdb/common/vector/flat_vector.hpp>
@@ -43,6 +44,7 @@
 #include <string_view>
 #include <vector>
 
+#include "catalog/entry/tokenizer.h"
 #include "connector/duckdb_client_state.h"
 #include "connector/functions/list_token_sink.hpp"
 #include "pg/commands/create_tsdictionary.h"
@@ -272,10 +274,8 @@ duckdb::unique_ptr<duckdb::FunctionData> Bind(
     if (!flat[i].IsRequired() && value == DefaultValue(flat[i])) {
       continue;
     }
-    absl::StrAppend(&key, flat[i].name, "=", value.ToString(), ";");
     Put(options, flat[i].name, std::move(value));
   }
-  absl::StrAppend(&key, ")");
   const auto operation = absl::StrCat(name, "()");
 
   pg::TokenizerConfigs children;
@@ -287,6 +287,8 @@ duckdb::unique_ptr<duckdb::FunctionData> Bind(
 
   auto config = pg::BuildStage(context, group.name, std::move(options),
                                std::move(children), operation);
+  const auto packed = catalog::PackTokenizerConfig(config);
+  absl::StrAppend(&key, absl::BytesToHexString(packed), ")");
 
   auto& db = duckdb::DatabaseInstance::GetDatabase(context);
   auto probe = irs::analysis::CreateTokenizer(irs::analysis::Clone(config),

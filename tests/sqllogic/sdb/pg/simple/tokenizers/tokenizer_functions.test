@@ -411,6 +411,43 @@ same_path
 t
 
 
+# --- Calls with different options never share a tokenizer ---
+
+query
+SELECT array_to_string(generate_ngrams('abc', start_marker := 'x;end_marker=y'), '|') AS a,
+       array_to_string(generate_ngrams('abc', start_marker := 'x', end_marker := 'y'), '|') AS b;
+----
+a	b
+x;end_marker=yab|x;end_marker=yabc|bc	xab|xabc|abcy|bcy
+
+statement ok
+CREATE TABLE repro_pool_src (v VARCHAR);
+
+statement ok
+INSERT INTO repro_pool_src VALUES ('abc');
+
+statement ok
+PREPARE repro_pool_a AS
+    SELECT array_to_string(generate_ngrams(v, start_marker := 'x;end_marker=y'), '|') AS t
+    FROM repro_pool_src;
+
+query
+EXECUTE repro_pool_a;
+----
+t
+x;end_marker=yab|x;end_marker=yabc|bc
+
+query
+SELECT array_to_string(generate_ngrams(v, start_marker := 'x', end_marker := 'y'), '|') AS t
+FROM repro_pool_src;
+----
+t
+xab|xabc|abcy|bcy
+
+statement ok
+DEALLOCATE repro_pool_a;
+
+
 # --- Every function form is a catalog function, and the four templates that
 # --- have none are not ---
 
