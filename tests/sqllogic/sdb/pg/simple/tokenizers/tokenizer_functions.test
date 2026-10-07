@@ -220,6 +220,12 @@ db error: ERROR: No function matches the given name and argument types 'split_te
 statement error invalid value in "case" parameter
 SELECT split_text('a', case := 'weird');
 
+statement error invalid value in "input_type" parameter
+SELECT generate_ngrams('abcd', input_type := 'utf-8');
+
+statement error required parameter "delimiters" was not found
+SELECT split_by_delimiters('a,b', NULL);
+
 statement error stem_words: invalid locale
 SELECT stem_words('running');
 
