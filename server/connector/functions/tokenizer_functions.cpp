@@ -288,7 +288,7 @@ duckdb::unique_ptr<duckdb::FunctionData> Bind(
   auto config = pg::BuildStage(context, group.name, std::move(options),
                                std::move(children), operation);
   const auto packed = catalog::PackTokenizerConfig(config);
-  absl::StrAppend(&key, absl::BytesToHexString(packed), ")");
+  absl::StrAppend(&key, absl::Base64Escape(packed), ")");
 
   auto& db = duckdb::DatabaseInstance::GetDatabase(context);
   auto probe = irs::analysis::CreateTokenizer(irs::analysis::Clone(config),
